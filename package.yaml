@@ -23,6 +23,13 @@ dependencies:
 - base >= 4.7 && < 5
 - pinch
 
+default-extensions:
+- DataKinds
+- DeriveAnyClass
+- DeriveGeneric
+- DerivingStrategies
+- TypeFamilies
+
 library:
   source-dirs: src
   ghc-options:
