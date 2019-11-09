@@ -211,3 +211,23 @@ data ConvertedType
   | PInterval (Enumeration 21)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
+
+{-
+enum FieldRepetitionType {
+  /** This field is required (can not be null) and each record has exactly 1 value. */
+  REQUIRED = 0;
+
+  /** The field is optional (can be null) and each record has 0 or 1 values. */
+  OPTIONAL = 1;
+
+  /** The field is repeated and can contain 0 or more values */
+  REPEATED = 2;
+}
+-}
+
+data FieldRepetitionType
+  = Required (Enumeration 1)
+  | Optional (Enumeration 2)
+  | Repeated (Enumeration 3)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
