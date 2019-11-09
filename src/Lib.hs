@@ -1,22 +1,12 @@
 module Lib where
 import Data.ByteString
 import Data.Int
+import Data.Text
+import Data.Vector
+import Data.Word
 import GHC.Generics
 import Pinch
 
-
-{-
-enum Type {
-  BOOLEAN = 0;
-  INT32 = 1;
-  INT64 = 2;
-  INT96 = 3;  // deprecated, only used by legacy implementations.
-  FLOAT = 4;
-  DOUBLE = 5;
-  BYTE_ARRAY = 6;
-  FIXED_LEN_BYTE_ARRAY = 7;
-}
--}
 
 data PType
   = PBool (Enumeration 0)
@@ -29,163 +19,6 @@ data PType
   | PFixedBArray (Enumeration 7)
   deriving (Show, Ord, Eq, Generic)
   deriving anyclass (Pinchable)
-
--- instance Pinchable PType where
---   type Tag PType = TEnum
---   pinch PBool = pinch (0 :: Int32)
---   pinch PI32 = pinch (1 :: Int32)
---   pinch PI64 = pinch (2 :: Int32)
---   pinch PI96 = pinch (3 :: Int32)
---   pinch PFloat = pinch (4 :: Int32)
---   pinch PDouble = pinch (5 :: Int32)
---   pinch PBArray = pinch (6 :: Int32)
---   pinch PFixedBArray = pinch (7 :: Int32)
---   unpinch v = do
---     value <- unpinch v
---     case (value :: Int32) of
---       0 -> Right PBool
---       1 -> Right PI32
---       2 -> Right PI64
---       3 -> Right PI96
---       4 -> Right PFloat
---       5 -> Right PDouble
---       6 -> Right PBArray
---       7 -> Right PFixedBArray
---       _ -> Left $ "Unknown PType: " ++ show value
-
-
-{-
-enum ConvertedType {
-  /** a BYTE_ARRAY actually contains UTF8 encoded chars */
-  UTF8 = 0;
-
-  /** a map is converted as an optional field containing a repeated key/value pair */
-  MAP = 1;
-
-  /** a key/value pair is converted into a group of two fields */
-  MAP_KEY_VALUE = 2;
-
-  /** a list is converted into an optional field containing a repeated field for its
-   * values */
-  LIST = 3;
-
-  /** an enum is converted into a binary field */
-  ENUM = 4;
-
-  /**
-   * A decimal value.
-   *
-   * This may be used to annotate binary or fixed primitive types. The
-   * underlying byte array stores the unscaled value encoded as two's
-   * complement using big-endian byte order (the most significant byte is the
-   * zeroth element). The value of the decimal is the value * 10^{-scale}.
-   *
-   * This must be accompanied by a (maximum) precision and a scale in the
-   * SchemaElement. The precision specifies the number of digits in the decimal
-   * and the scale stores the location of the decimal point. For example 1.23
-   * would have precision 3 (3 total digits) and scale 2 (the decimal point is
-   * 2 digits over).
-   */
-  DECIMAL = 5;
-
-  /**
-   * A Date
-   *
-   * Stored as days since Unix epoch, encoded as the INT32 physical type.
-   *
-   */
-  DATE = 6;
-
-  /**
-   * A time
-   *
-   * The total number of milliseconds since midnight.  The value is stored
-   * as an INT32 physical type.
-   */
-  TIME_MILLIS = 7;
-
-  /**
-   * A time.
-   *
-   * The total number of microseconds since midnight.  The value is stored as
-   * an INT64 physical type.
-   */
-  TIME_MICROS = 8;
-
-  /**
-   * A date/time combination
-   *
-   * Date and time recorded as milliseconds since the Unix epoch.  Recorded as
-   * a physical type of INT64.
-   */
-  TIMESTAMP_MILLIS = 9;
-
-  /**
-   * A date/time combination
-   *
-   * Date and time recorded as microseconds since the Unix epoch.  The value is
-   * stored as an INT64 physical type.
-   */
-  TIMESTAMP_MICROS = 10;
-
-
-  /**
-   * An unsigned integer value.
-   *
-   * The number describes the maximum number of meaningful data bits in
-   * the stored value. 8, 16 and 32 bit values are stored using the
-   * INT32 physical type.  64 bit values are stored using the INT64
-   * physical type.
-   *
-   */
-  UINT_8 = 11;
-  UINT_16 = 12;
-  UINT_32 = 13;
-  UINT_64 = 14;
-
-  /**
-   * A signed integer value.
-   *
-   * The number describes the maximum number of meaningful data bits in
-   * the stored value. 8, 16 and 32 bit values are stored using the
-   * INT32 physical type.  64 bit values are stored using the INT64
-   * physical type.
-   *
-   */
-  INT_8 = 15;
-  INT_16 = 16;
-  INT_32 = 17;
-  INT_64 = 18;
-
-  /**
-   * An embedded JSON document
-   *
-   * A JSON document embedded within a single UTF8 column.
-   */
-  JSON = 19;
-
-  /**
-   * An embedded BSON document
-   *
-   * A BSON document embedded within a single BINARY column.
-   */
-  BSON = 20;
-
-  /**
-   * An interval of time
-   *
-   * This type annotates data stored as a FIXED_LEN_BYTE_ARRAY of length 12
-   * This data is composed of three separate little endian unsigned
-   * integers.  Each stores a component of a duration of time.  The first
-   * integer identifies the number of months associated with the duration,
-   * the second identifies the number of days associated with the duration
-   * and the third identifies the number of milliseconds associated with
-   * the provided duration.  This duration of time is independent of any
-   * particular timezone or date.
-   */
-  INTERVAL = 21;
-}
--}-}
 
 data ConvertedType
   = PUTF8 (Enumeration 0)
@@ -213,57 +46,12 @@ data ConvertedType
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
 
-{-
-enum FieldRepetitionType {
-  /** This field is required (can not be null) and each record has exactly 1 value. */
-  REQUIRED = 0;
-
-  /** The field is optional (can be null) and each record has 0 or 1 values. */
-  OPTIONAL = 1;
-
-  /** The field is repeated and can contain 0 or more values */
-  REPEATED = 2;
-}
--}
-
 data FieldRepetitionType
   = Required (Enumeration 1)
   | Optional (Enumeration 2)
   | Repeated (Enumeration 3)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
-
-{-
-struct Statistics {
-   /**
-    * DEPRECATED: min and max value of the column. Use min_value and max_value.
-    *
-    * Values are encoded using PLAIN encoding, except that variable-length byte
-    * arrays do not include a length prefix.
-    *
-    * These fields encode min and max values determined by signed comparison
-    * only. New files should use the correct order for a column's logical type
-    * and store the values in the min_value and max_value fields.
-    *
-    * To support older readers, these may be set when the column order is
-    * signed.
-    */
-   1: optional binary max;
-   2: optional binary min;
-   /** count of null value in the column */
-   3: optional i64 null_count;
-   /** count of distinct values occurring */
-   4: optional i64 distinct_count;
-   /**
-    * Min and max values for the column, determined by its ColumnOrder.
-    *
-    * Values are encoded using PLAIN encoding, except that variable-length byte
-    * arrays do not include a length prefix.
-    */
-   5: optional binary max_value;
-   6: optional binary min_value;
-}
--}
 
 data Statistics
   = Statistics
@@ -273,6 +61,388 @@ data Statistics
   , stDistinctCount :: Field 4 (Maybe Int64)
   , stMaxValue :: Field 5 (Maybe ByteString)
   , stMinValue :: Field 6 (Maybe ByteString)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data EmptyStruct = EmptyStruct
+  deriving (Eq, Ord, Show)
+
+instance Pinchable EmptyStruct where
+  type Tag EmptyStruct = TStruct
+  pinch EmptyStruct = struct []
+  unpinch _ = pure EmptyStruct
+
+data DecimalType
+  = DecimalType
+  { decScale :: Field 1 Int32
+  , decPrecision :: Field 2 Int32
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data TimeUnit
+  = TUMillis (Field 1 EmptyStruct)
+  | TUMicros (Field 2 EmptyStruct)
+  | TUNanos (Field 3 EmptyStruct)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data TimestampType
+  = TimestampType
+  { tsIsAdjustedToUTC :: Field 1 Bool
+  , tsUnit :: Field 2 TimeUnit
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data TimeType
+  = TimeType
+  { tIsAdjustedToUTC :: Field 1 Bool
+  , tUnit :: Field 2 TimeUnit
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data IntType
+  = IntType
+  { bitWidth :: Field 1 Int8
+  , isSigned :: Field 2 Bool
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data LogicalType
+  = LStringType (Field 1 EmptyStruct)
+  | LMapType (Field 2 EmptyStruct)
+  | LListType (Field 3 EmptyStruct)
+  | LEnumType (Field 4 EmptyStruct)
+  | LDecimalType (Field 5 DecimalType)
+  | LDateType (Field 6 EmptyStruct)
+  | LTimeType (Field 7 TimeType)
+  | LTimestampType (Field 8 TimestampType)
+  | LIntType (Field 9 IntType)
+  | LNullType (Field 10 EmptyStruct)
+  | LJsonType (Field 11 EmptyStruct)
+  | LBsonType (Field 12 EmptyStruct)
+  | LUUIDType (Field 13 EmptyStruct)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data SchemaElement
+  = SchemaElement
+  { schType :: Field 1 (Maybe PType)
+  , schTypeLength :: Field 2 (Maybe Int32)
+  , schRepetitionType :: Field 3 (Maybe FieldRepetitionType)
+  , schName :: Field 4 Text
+  , schNumChildren :: Field 5 (Maybe Int32)
+  , schConvertedType :: Field 6 (Maybe ConvertedType)
+  , schScale :: Field 7 (Maybe Int32)
+  , schPrecision :: Field 8 (Maybe Int32)
+  , schFieldId :: Field 9 (Maybe Int32)
+  , schLogicalType :: Field 10 (Maybe LogicalType)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data Encoding
+  = Plain (Enumeration 0)
+  | PlainDictionary (Enumeration 2)
+  | RLE (Enumeration 3)
+  | BitPacked (Enumeration 4)
+  | DeltaBinaryPacked (Enumeration 5)
+  | DeltaLengthByteArray (Enumeration 6)
+  | DeltaByteArray (Enumeration 7)
+  | RLEDictionary (Enumeration 8)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data CompressionCodec
+  = Uncompressed (Enumeration 0)
+  | Snappy (Enumeration 1)
+  | GZip (Enumeration 2)
+  | LZO (Enumeration 3)
+  | Brotli (Enumeration 4)
+  | LZ4 (Enumeration 5)
+  | ZSTD (Enumeration 6)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data PageType
+  = DataPage (Enumeration 0)
+  | IndexPage (Enumeration 1)
+  | DictionaryPage (Enumeration 2)
+  | DataPageV2 (Enumeration 3)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data BoundaryOrder
+  = Unordered (Enumeration 0)
+  | Ascending (Enumeration 1)
+  | Descending (Enumeration 2)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data DataPageHeader
+  = DataPageHeader
+  { dphNumValues :: Field 1 Int32
+  , dphEncoding :: Field 2 Encoding
+  , dphDefinitionLevelEncoding :: Field 3 Encoding
+  , dphRepetitionLevelEncoding :: Field 4 Encoding
+  , dphStatistics :: Field 5 (Maybe Statistics)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+type IndexPageHeader = EmptyStruct
+
+data DictionaryPageHeader
+  = DictionaryPageHeader
+  { dicNumValues :: Field 1 Int32
+  , dicEncoding :: Field 2 Encoding
+  , dicIsSorted :: Field 3 (Maybe Bool)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data DataPageHeaderV2
+  = DataPageHeaderV2
+  { dph2NumValues :: Field 1 Int32
+  , dph2NumNulls :: Field 2 Int32
+  , dph2NumRows :: Field 3 Int32
+  , dph2Encoding :: Field 4 Encoding
+  , dph2DefinitionLevelsByteLength :: Field 5 Int32
+  , dph2RepetitionLevelsByteLength :: Field 6 Int32
+  , dph2IsCompressed :: Field 7 (Maybe Bool)
+  , dph2Statistics :: Field 8 (Maybe Statistics)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+type SplitBlockAlgorithm = EmptyStruct
+
+data BloomFilterAlgorithm
+  = BFABlock SplitBlockAlgorithm
+  deriving (Eq, Ord, Show, Generic)
+
+-- manually implement union with only one branch
+instance Pinchable BloomFilterAlgorithm where
+  type Tag BloomFilterAlgorithm = TUnion
+  pinch (BFABlock f) = union 1 f
+  unpinch v = BFABlock <$> v .: 1
+
+type XxHash = EmptyStruct
+
+data BloomFilterHash
+  = BFHXxHash XxHash
+  deriving (Eq, Ord, Show, Generic)
+
+-- manually implement union with only one branch
+instance Pinchable BloomFilterHash where
+  type Tag BloomFilterHash = TUnion
+  pinch (BFHXxHash h) = union 1 h
+  unpinch v = BFHXxHash <$> v .: 1
+
+type Uncompressed = EmptyStruct
+
+data BloomFilterCompression
+  = BFCUncompressed Uncompressed
+  deriving (Eq, Ord, Show, Generic)
+
+instance Pinchable BloomFilterCompression where
+  type Tag BloomFilterCompression = TUnion
+  pinch (BFCUncompressed u) = union 1 u
+  unpinch v = BFCUncompressed <$> v .: 1
+
+data BloomFilterHeader
+  = BloomFilterHeader
+  { bfhNumBytes :: Field 1 Int32
+  , bfhAlgorithm :: Field 2 BloomFilterAlgorithm
+  , bfhHash :: Field 3 BloomFilterHash
+  , bfhCompression :: Field 4 BloomFilterCompression
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data PageHeader
+  = PageHeader
+  { phType :: Field 1 PageType
+  , phUncompressedPageSize :: Field 2 Int32
+  , phCompressedPageSize :: Field 3 Int32
+  , phCRC :: Field 4 (Maybe Int32)
+  , phDataPageHeader :: Field 5 (Maybe DataPageHeader)
+  , phIndexPageHeader :: Field 6 (Maybe IndexPageHeader)
+  , phDictionaryPageHeader :: Field 7 (Maybe DictionaryPageHeader)
+  , phDataPageHeaderV2 :: Field 8 (Maybe DataPageHeaderV2)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data KeyValue
+  = KeyValue
+  { kvKey :: Field 1 Text
+  , kvValue :: Field 2 (Maybe Text)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data SortingColumn
+  = SortingColumn
+  { scColumnIdx :: Field 1 Int32
+  , scDescending :: Field 2 Bool
+  , scNullsFirst :: Field 3 Bool
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data PageEncodingStats
+  = PageEncodingStats
+  { pesPageType :: Field 1 PageType
+  , pesEncoding :: Field 2 Encoding
+  , pesCount :: Field 3 Int32
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data ColumnMetadata
+  = ColumnMetadata
+  { colType :: Field 1 PType
+  , colEncodings :: Field 2 (Vector Encoding)
+  , colPathInSchema :: Field 3 (Vector Text)
+  , colCodec :: Field 4 CompressionCodec
+  , colNumValues :: Field 5 Int64
+  , colTotalUncompressedSize :: Field 6 Int64
+  , colTotalCompressedSize :: Field 7 Int64
+  , colKeyValueMetadata :: Field 8 (Maybe (Vector KeyValue))
+  , colDataPageOffset :: Field 9 Int64
+  , colIndexPageOffset :: Field 10 (Maybe Int64)
+  , colDictionaryPageOffset :: Field 11 (Maybe Int64)
+  , colStatistics :: Field 12 (Maybe Statistics)
+  , colEncodingStats :: Field 13 (Maybe (Vector PageEncodingStats))
+  , colBloomFilterOffset :: Field 14 (Maybe Int64)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+type EncryptionWithFooterKey = EmptyStruct
+
+data EncryptionWithColumnKey
+  = EncryptionWithColumnKey
+  { eckPathInSchema :: Field 1 (Vector Text)
+  , eckKeyMetadata :: Field 2 (Maybe ByteString)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data ColumnCryptoMetadata
+  = ColEncryptionFK (Field 1 EncryptionWithFooterKey)
+  | ColEncryptionCK (Field 2 EncryptionWithColumnKey)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data ColumnChunk
+  = ColumnChunk
+  { cchFilePath :: Field 1 (Maybe Text)
+  , cchFileOffset :: Field 2 Int64
+  , cchMetadata :: Field 3 (Maybe ColumnMetadata)
+  , cchOffsetIndexOffset :: Field 4 (Maybe Int64)
+  , cchOffsetIndexLength :: Field 5 (Maybe Int32)
+  , cchColumnIndexOffset :: Field 6 (Maybe Int64)
+  , cchColumnIndexLength :: Field 7 (Maybe Int32)
+  , cchCryptoMetadata :: Field 8 (Maybe ColumnCryptoMetadata)
+  , cchEncryptedColumnMetadata :: Field 9 (Maybe ByteString)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data RowGroup
+  = RowGroup
+  { rgrpColumns :: Field 1 (Vector ColumnChunk)
+  , rgrpTotalByteSize :: Field 2 Int64
+  , rgrpNumRows :: Field 3 Int64
+  , rgrpSortingColumns :: Field 4 (Maybe (Vector SortingColumn))
+  , rgrpFileOffset :: Field 5 (Maybe Int64)
+  , rgrpTotalCompressedSize :: Field 6 (Maybe Int64)
+  , rgrpOrdinal :: Field 7 (Maybe Int16)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+type TypeDefinedOrder = EmptyStruct
+
+data ColumnOrder
+  = TypeOrder TypeDefinedOrder
+  deriving (Eq, Ord, Show, Generic)
+
+-- manually implement union with only one branch
+instance Pinchable ColumnOrder where
+  type Tag ColumnOrder = TUnion
+  pinch (TypeOrder o) = union 1 o
+  unpinch v = TypeOrder <$> v .: 1
+
+data PageLocation
+  = PageLocation
+  { plocOffset :: Field 1 Int64
+  , plocCompressedPageSize :: Field 2 Int32
+  , plocFirstRowIndex :: Field 3 Int64
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data OffsetIndex
+  = OffsetIndex
+  { pageLocations :: Field 1 (Vector PageLocation)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data ColumnIndex
+  = ColumnIndex
+  { cixNullPages :: Field 1 (Vector Bool)
+  , cixMinValues :: Field 2 (Vector ByteString)
+  , cixMaxValues :: Field 3 (Vector ByteString)
+  , cixBoundaryOrder :: Field 4 BoundaryOrder
+  , cixNullCounts :: Field 5 (Maybe (Vector Int64))
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data AesGcmCtrV1
+  = AesGcmCtrV1
+  { aadPrefix :: Field 1 (Maybe ByteString)
+  , aadFileUnique :: Field 2 (Maybe ByteString)
+  , supplyAadPrefix :: Field 3 (Maybe Bool)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+type AesGcmV1 = AesGcmCtrV1
+
+data EncryptionAlgorithm
+  = EAAESGCMv1 (Field 1 AesGcmV1)
+  | EAAESGCMCTRv1 (Field 2 AesGcmCtrV1)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data FileMetadata
+  = FileMetadata
+  { fmVersion :: Field 1 Int32
+  , fmSchema :: Field 2 (Vector SchemaElement)
+  , fmNumRows :: Field 3 Int64
+  , fmRowGroups :: Field 4 (Vector RowGroup)
+  , fmKeyValueMetadata :: Field 5 (Maybe (Vector KeyValue))
+  , fmCreatedBy :: Field 6 (Maybe Text)
+  , fmColumnOrders :: Field 7 (Maybe (Vector ColumnOrder))
+  , fmEncryptionAlgorithm :: Field 8 (Maybe EncryptionAlgorithm)
+  , fmFooterSigningKeyMetadata :: Field 9 (Maybe ByteString)
+  }
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+data FileCryptoMetadata
+  = FileCryptoMetadata
+  { fcmEncryptionAlgorithm :: Field 1 EncryptionAlgorithm
+  , fcmKeyMetadata :: Field 2 (Maybe ByteString)
   }
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
