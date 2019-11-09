@@ -39,7 +39,8 @@ packages:
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
-# extra-deps: []
+extra-deps:
+- pinch-0.3.5.0@sha256:0da4940423cdb4c2536aabf0df5979eff0e137132b3686405c3758418fd08589,3931
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
