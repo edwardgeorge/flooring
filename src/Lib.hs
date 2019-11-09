@@ -1,5 +1,6 @@
 module Lib where
--- import Data.Int
+import Data.ByteString
+import Data.Int
 import GHC.Generics
 import Pinch
 
@@ -229,5 +230,49 @@ data FieldRepetitionType
   = Required (Enumeration 1)
   | Optional (Enumeration 2)
   | Repeated (Enumeration 3)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (Pinchable)
+
+{-
+struct Statistics {
+   /**
+    * DEPRECATED: min and max value of the column. Use min_value and max_value.
+    *
+    * Values are encoded using PLAIN encoding, except that variable-length byte
+    * arrays do not include a length prefix.
+    *
+    * These fields encode min and max values determined by signed comparison
+    * only. New files should use the correct order for a column's logical type
+    * and store the values in the min_value and max_value fields.
+    *
+    * To support older readers, these may be set when the column order is
+    * signed.
+    */
+   1: optional binary max;
+   2: optional binary min;
+   /** count of null value in the column */
+   3: optional i64 null_count;
+   /** count of distinct values occurring */
+   4: optional i64 distinct_count;
+   /**
+    * Min and max values for the column, determined by its ColumnOrder.
+    *
+    * Values are encoded using PLAIN encoding, except that variable-length byte
+    * arrays do not include a length prefix.
+    */
+   5: optional binary max_value;
+   6: optional binary min_value;
+}
+-}
+
+data Statistics
+  = Statistics
+  { stMax :: Field 1 (Maybe ByteString)
+  , stMin :: Field 2 (Maybe ByteString)
+  , stNullCount :: Field 3 (Maybe Int64)
+  , stDistinctCount :: Field 4 (Maybe Int64)
+  , stMaxValue :: Field 5 (Maybe ByteString)
+  , stMinValue :: Field 6 (Maybe ByteString)
+  }
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
