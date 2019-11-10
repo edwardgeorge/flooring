@@ -47,9 +47,9 @@ data ConvertedType
   deriving anyclass (Pinchable)
 
 data FieldRepetitionType
-  = Required (Enumeration 1)
-  | Optional (Enumeration 2)
-  | Repeated (Enumeration 3)
+  = Required (Enumeration 0)
+  | Optional (Enumeration 1)
+  | Repeated (Enumeration 2)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
 
