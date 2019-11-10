@@ -21,19 +21,23 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- aeson
 - bytestring
 - cereal
 - pinch
 - text
 - vector
+- yaml
 
 default-extensions:
 - DataKinds
 - DeriveAnyClass
 - DeriveGeneric
 - DerivingStrategies
+- DerivingVia
 - OverloadedStrings
 - TypeFamilies
+- TypeOperators
 
 library:
   source-dirs: src

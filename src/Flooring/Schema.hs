@@ -1,12 +1,14 @@
 module Flooring.Schema where
+import Data.Aeson (ToJSON(..))
 import Data.ByteString (ByteString)
 import Data.Int
 import Data.Text (Text)
 import Data.Vector (Vector)
-import Data.Word
 import GHC.Generics
 import Pinch
 
+import Flooring.Internal.Generics
+import Flooring.Internal.Orphans ()
 
 data PType
   = PBool (Enumeration 0)
@@ -19,6 +21,7 @@ data PType
   | PFixedBArray (Enumeration 7)
   deriving (Show, Ord, Eq, Generic)
   deriving anyclass (Pinchable)
+  deriving ToJSON via (JSONEnumeration PType)
 
 data ConvertedType
   = PUTF8 (Enumeration 0)
@@ -45,6 +48,7 @@ data ConvertedType
   | PInterval (Enumeration 21)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
+  deriving ToJSON via (JSONEnumeration ConvertedType)
 
 data FieldRepetitionType
   = Required (Enumeration 0)
@@ -52,6 +56,7 @@ data FieldRepetitionType
   | Repeated (Enumeration 2)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
+  deriving ToJSON via (JSONEnumeration FieldRepetitionType)
 
 data Statistics
   = Statistics
