@@ -22,6 +22,7 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - bytestring
+- cereal
 - pinch
 - text
 - vector
@@ -31,6 +32,7 @@ default-extensions:
 - DeriveAnyClass
 - DeriveGeneric
 - DerivingStrategies
+- OverloadedStrings
 - TypeFamilies
 
 library:
