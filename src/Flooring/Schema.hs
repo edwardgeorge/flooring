@@ -1,5 +1,5 @@
 module Flooring.Schema where
-import Data.Aeson (ToJSON(..))
+import Data.Aeson (ToJSON(..), object)
 import Data.ByteString (ByteString)
 import Data.Int
 import Data.Text (Text)
@@ -68,7 +68,7 @@ data Statistics
   , stMinValue :: Field 6 (Maybe ByteString)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data EmptyStruct = EmptyStruct
   deriving (Eq, Ord, Show)
@@ -78,20 +78,23 @@ instance Pinchable EmptyStruct where
   pinch EmptyStruct = struct []
   unpinch _ = pure EmptyStruct
 
+instance ToJSON EmptyStruct where
+  toJSON EmptyStruct = object []
+
 data DecimalType
   = DecimalType
   { decScale :: Field 1 Int32
   , decPrecision :: Field 2 Int32
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data TimeUnit
   = TUMillis (Field 1 EmptyStruct)
   | TUMicros (Field 2 EmptyStruct)
   | TUNanos (Field 3 EmptyStruct)
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data TimestampType
   = TimestampType
@@ -99,7 +102,7 @@ data TimestampType
   , tsUnit :: Field 2 TimeUnit
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data TimeType
   = TimeType
@@ -107,7 +110,7 @@ data TimeType
   , tUnit :: Field 2 TimeUnit
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data IntType
   = IntType
@@ -115,7 +118,7 @@ data IntType
   , isSigned :: Field 2 Bool
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data LogicalType
   = LStringType (Field 1 EmptyStruct)
@@ -132,7 +135,7 @@ data LogicalType
   | LBsonType (Field 12 EmptyStruct)
   | LUUIDType (Field 13 EmptyStruct)
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data SchemaElement
   = SchemaElement
@@ -148,7 +151,7 @@ data SchemaElement
   , schLogicalType :: Field 10 (Maybe LogicalType)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data Encoding
   = Plain (Enumeration 0)
@@ -161,6 +164,7 @@ data Encoding
   | RLEDictionary (Enumeration 8)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
+  deriving ToJSON via (JSONEnumeration Encoding)
 
 data CompressionCodec
   = Uncompressed (Enumeration 0)
@@ -172,6 +176,7 @@ data CompressionCodec
   | ZSTD (Enumeration 6)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
+  deriving ToJSON via (JSONEnumeration CompressionCodec)
 
 data PageType
   = DataPage (Enumeration 0)
@@ -180,6 +185,7 @@ data PageType
   | DataPageV2 (Enumeration 3)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
+  deriving ToJSON via (JSONEnumeration PageType)
 
 data BoundaryOrder
   = Unordered (Enumeration 0)
@@ -187,6 +193,7 @@ data BoundaryOrder
   | Descending (Enumeration 2)
   deriving (Eq, Ord, Show, Generic)
   deriving anyclass (Pinchable)
+  deriving ToJSON via (JSONEnumeration BoundaryOrder)
 
 data DataPageHeader
   = DataPageHeader
@@ -197,7 +204,7 @@ data DataPageHeader
   , dphStatistics :: Field 5 (Maybe Statistics)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 type IndexPageHeader = EmptyStruct
 
@@ -208,7 +215,7 @@ data DictionaryPageHeader
   , dicIsSorted :: Field 3 (Maybe Bool)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data DataPageHeaderV2
   = DataPageHeaderV2
@@ -222,7 +229,7 @@ data DataPageHeaderV2
   , dph2Statistics :: Field 8 (Maybe Statistics)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 type SplitBlockAlgorithm = EmptyStruct
 
@@ -236,6 +243,9 @@ instance Pinchable BloomFilterAlgorithm where
   pinch (BFABlock f) = union 1 f
   unpinch v = BFABlock <$> v .: 1
 
+instance ToJSON BloomFilterAlgorithm where
+  toJSON (BFABlock _) = toJSON @String "BLOCK"
+
 type XxHash = EmptyStruct
 
 data BloomFilterHash
@@ -248,6 +258,9 @@ instance Pinchable BloomFilterHash where
   pinch (BFHXxHash h) = union 1 h
   unpinch v = BFHXxHash <$> v .: 1
 
+instance ToJSON BloomFilterHash where
+  toJSON (BFHXxHash _) = toJSON @String "XXHASH"
+
 type Uncompressed = EmptyStruct
 
 data BloomFilterCompression
@@ -259,6 +272,9 @@ instance Pinchable BloomFilterCompression where
   pinch (BFCUncompressed u) = union 1 u
   unpinch v = BFCUncompressed <$> v .: 1
 
+instance ToJSON BloomFilterCompression where
+  toJSON (BFCUncompressed _) = toJSON @String "UNCOMPRESSED"
+
 data BloomFilterHeader
   = BloomFilterHeader
   { bfhNumBytes :: Field 1 Int32
@@ -267,7 +283,7 @@ data BloomFilterHeader
   , bfhCompression :: Field 4 BloomFilterCompression
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data PageHeader
   = PageHeader
@@ -281,7 +297,7 @@ data PageHeader
   , phDataPageHeaderV2 :: Field 8 (Maybe DataPageHeaderV2)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data KeyValue
   = KeyValue
@@ -289,7 +305,7 @@ data KeyValue
   , kvValue :: Field 2 (Maybe Text)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data SortingColumn
   = SortingColumn
@@ -298,7 +314,7 @@ data SortingColumn
   , scNullsFirst :: Field 3 Bool
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data PageEncodingStats
   = PageEncodingStats
@@ -307,7 +323,7 @@ data PageEncodingStats
   , pesCount :: Field 3 Int32
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data ColumnMetadata
   = ColumnMetadata
@@ -327,7 +343,7 @@ data ColumnMetadata
   , colBloomFilterOffset :: Field 14 (Maybe Int64)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 type EncryptionWithFooterKey = EmptyStruct
 
@@ -337,13 +353,13 @@ data EncryptionWithColumnKey
   , eckKeyMetadata :: Field 2 (Maybe ByteString)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data ColumnCryptoMetadata
   = ColEncryptionFK (Field 1 EncryptionWithFooterKey)
   | ColEncryptionCK (Field 2 EncryptionWithColumnKey)
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data ColumnChunk
   = ColumnChunk
@@ -358,7 +374,7 @@ data ColumnChunk
   , cchEncryptedColumnMetadata :: Field 9 (Maybe ByteString)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data RowGroup
   = RowGroup
@@ -371,7 +387,7 @@ data RowGroup
   , rgrpOrdinal :: Field 7 (Maybe Int16)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 type TypeDefinedOrder = EmptyStruct
 
@@ -385,6 +401,9 @@ instance Pinchable ColumnOrder where
   pinch (TypeOrder o) = union 1 o
   unpinch v = TypeOrder <$> v .: 1
 
+instance ToJSON ColumnOrder where
+  toJSON (TypeOrder _) = toJSON @String "TYPE_ORDER"
+
 data PageLocation
   = PageLocation
   { plocOffset :: Field 1 Int64
@@ -392,14 +411,14 @@ data PageLocation
   , plocFirstRowIndex :: Field 3 Int64
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data OffsetIndex
   = OffsetIndex
   { pageLocations :: Field 1 (Vector PageLocation)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data ColumnIndex
   = ColumnIndex
@@ -410,7 +429,7 @@ data ColumnIndex
   , cixNullCounts :: Field 5 (Maybe (Vector Int64))
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data AesGcmCtrV1
   = AesGcmCtrV1
@@ -419,7 +438,7 @@ data AesGcmCtrV1
   , supplyAadPrefix :: Field 3 (Maybe Bool)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 type AesGcmV1 = AesGcmCtrV1
 
@@ -427,7 +446,7 @@ data EncryptionAlgorithm
   = EAAESGCMv1 (Field 1 AesGcmV1)
   | EAAESGCMCTRv1 (Field 2 AesGcmCtrV1)
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data FileMetadata
   = FileMetadata
@@ -442,7 +461,7 @@ data FileMetadata
   , fmFooterSigningKeyMetadata :: Field 9 (Maybe ByteString)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
 
 data FileCryptoMetadata
   = FileCryptoMetadata
@@ -450,4 +469,4 @@ data FileCryptoMetadata
   , fcmKeyMetadata :: Field 2 (Maybe ByteString)
   }
   deriving (Eq, Ord, Show, Generic)
-  deriving anyclass (Pinchable)
+  deriving anyclass (Pinchable, ToJSON)
